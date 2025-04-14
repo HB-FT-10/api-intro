@@ -6,13 +6,16 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: OPTIONS, GET, POST, DELETE');
 header('Access-Control-Allow-Headers: Content-Type');
 
-try {
-    $dsn = "mysql:host=127.0.0.1;port=3640;dbname=training_db;charset=utf8mb4";
-    $pdo = new PDO($dsn, 'root', 'mysqltests');
-} catch (PDOException $e) {
-    echo "Erreur de connexion à la base de données";
-    exit;
-}
+set_exception_handler(function (Throwable $exception) {
+    http_response_code(500);
+
+    echo json_encode([
+        'error' => 'An unexpected error occured, please try again later'
+    ]);
+});
+
+$dsn = "mysql:host=127.0.0.1;port=3640;dbname=training_db;charset=utf8mb4";
+$pdo = new PDO($dsn, 'root', 'mysqltests');
 
 // x /getUsers
 // x /findAllUsers
@@ -127,4 +130,13 @@ if ($httpMethod === "POST" && count($uriParts) === 1) {
         "id" => intval($newResourceItemId),
         ...$data
     ]);
+}
+
+// DELETE /users/2
+// DELETE /categories/6
+if ($httpMethod === 'DELETE' && count($uriParts) === 2) {
+    $stmt = $pdo->prepare("DELETE FROM $resource WHERE id=:id");
+    $stmt->execute(['id' => $id]);
+
+    http_response_code(204); // No Content
 }
