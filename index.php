@@ -78,3 +78,38 @@ if ($httpMethod === "GET" && count($uriParts) === 2) {
     echo json_encode($resourceItem);
     exit;
 }
+
+// Créer un élément
+// POST /categories
+// POST /users
+// ...
+if ($httpMethod === "POST" && count($uriParts) === 1) {
+    // Je récupère le contenu brut du corps de la requête
+    // Donc du texte
+    $rawData = file_get_contents("php://input");
+    // Je demande à PHP de décoder ce texte (que j'attends au format JSON)
+    // pour en faire un tableau associatif
+    $data = json_decode($rawData, true);
+
+    if ($resource === 'users') {
+        $query = "INSERT INTO users (`username`, `email`) VALUES (:username, :email)";
+    } elseif ($resource === 'categories') {
+        $query = "INSERT INTO categories (`name`) VALUES (:name)";
+    }
+
+    try {
+        $stmt = $pdo->prepare($query);
+        $stmt->execute($data);
+    } catch (PDOException $e) {
+        http_response_code(400); // Bad request
+        echo json_encode(["error" => $e->getMessage()]);
+        exit;
+    }
+
+    http_response_code(201); // Created
+    $newResourceItemId = $pdo->lastInsertId();
+    echo json_encode([
+        "id" => intval($newResourceItemId),
+        ...$data
+    ]);
+}
