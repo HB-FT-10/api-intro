@@ -2,6 +2,9 @@
 
 // Headers : avant le corps de la requête
 header('Content-Type: application/json; charset=UTF-8');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: OPTIONS, GET, POST, DELETE');
+header('Access-Control-Allow-Headers: Content-Type');
 
 try {
     $dsn = "mysql:host=127.0.0.1;port=3640;dbname=training_db;charset=utf8mb4";
