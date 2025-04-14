@@ -57,8 +57,16 @@ if ($httpMethod === "GET" && count($uriParts) === 1) {
     $stmt = $pdo->query("SELECT * FROM $resource");
     $list = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // "uri" => "/resource/id"
+    $output = array_map(function ($element) use ($resource) {
+        return [
+            "uri" => '/' . $resource . '/' . $element['id'],
+            ...$element
+        ];
+    }, $list);
+
     // Au format JSON
-    echo json_encode($list);
+    echo json_encode($output);
     exit;
 }
 
@@ -75,7 +83,10 @@ if ($httpMethod === "GET" && count($uriParts) === 2) {
         exit;
     }
 
-    echo json_encode($resourceItem);
+    echo json_encode([
+        "uri" => '/' . $resource . '/' . $resourceItem['id'],
+        ...$resourceItem
+    ]);
     exit;
 }
 
@@ -109,6 +120,7 @@ if ($httpMethod === "POST" && count($uriParts) === 1) {
     http_response_code(201); // Created
     $newResourceItemId = $pdo->lastInsertId();
     echo json_encode([
+        "uri" => '/' . $resource . '/' . $newResourceItemId,
         "id" => intval($newResourceItemId),
         ...$data
     ]);
