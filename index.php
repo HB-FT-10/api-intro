@@ -64,15 +64,16 @@ if ($httpMethod === "GET" && count($uriParts) === 1) {
     $list = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // "uri" => "/resource/id"
-    $output = array_map(function ($element) use ($resource) {
-        return [
-            "uri" => '/' . $resource . '/' . $element['id'],
-            ...$element
-        ];
-    }, $list);
+    $results = [];
+
+    foreach ($list as $element) {
+        $element["uri"] = '/' . $resource . '/' . $element['id'];
+
+        $results[] = $element;
+    }
 
     // Au format JSON
-    echo json_encode($output);
+    echo json_encode($results);
     exit;
 }
 
