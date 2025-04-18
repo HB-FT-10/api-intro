@@ -30,8 +30,32 @@ $pdo = new PDO($dsn, 'root', 'mysqltests');
 // o GET /categories/2
 
 // /resource[/id]
-$uri = $_SERVER['REQUEST_URI'];
+
+$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $httpMethod = $_SERVER['REQUEST_METHOD'];
+
+if (!isset($_GET['apikey'])) {
+    http_response_code(401);
+    echo json_encode([
+        'error' => 'Missing API Key'
+    ]);
+    exit;
+}
+
+$apikey = $_GET['apikey'];
+
+// Requête SQL pour vérifier l'existence de la clé
+$tokenStmt = $pdo->prepare("SELECT EXISTS (SELECT 1 FROM users WHERE api_token = :api_token) AS `exists`");
+$tokenStmt->execute(['api_token' => $apikey]);
+$token = $tokenStmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$token['exists']) {
+    http_response_code(401);
+    echo json_encode([
+        'error' => 'Invalid token'
+    ]);
+    exit;
+}
 
 // Analyser $uri pour extraire la ressource, et éventuellement l'ID
 $uriParts = explode('/', ltrim($uri, '/'));
